@@ -1,0 +1,15 @@
+{
+	"blackList_Android": [
+		"com.zlsbxgqys.model",
+		"com.saitesoft.gamecheater",
+		"com.sengd.ka.zrzsbyhjq",
+		"com.qdzz.sr.sbyxdsxgq",
+		"cn.maocai.gamekiller",
+		"org.sbtools.gamehack",
+		"com.huluxia.gametools",
+	],
+	"blackList_IOS":
+	[
+
+	]
+}
