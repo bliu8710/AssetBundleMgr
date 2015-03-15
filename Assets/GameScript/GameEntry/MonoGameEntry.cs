@@ -6,6 +6,8 @@ public class MonoGameEntry : MonoBehaviour {
 	string _firstLine = "";
 	// Use this for initialization
 	IEnumerator Start () {
+		yield return StartCoroutine(AssetBundleLoader.Initialize());
+
 		yield return StartCoroutine(LoadFromFile());
 
 		Debug.Log("Start " + _firstLine);
@@ -16,8 +18,7 @@ public class MonoGameEntry : MonoBehaviour {
 		if (_loadFileFinished)
 		{
 			//xxx
-
-			Debug.Log("Update " + _firstLine);
+			//Debug.Log("Update " + _firstLine);
 		}
 
 	}
@@ -26,21 +27,18 @@ public class MonoGameEntry : MonoBehaviour {
 	{
 		string fileName = "Data/AchievementsData.txt";
 
-		AssetBundleLoader myLoader = new AssetBundleLoader();
-		yield return StartCoroutine(myLoader.Initialize());
-		yield return StartCoroutine(myLoader.LoadAssestAsync(fileName));
+		yield return StartCoroutine(AssetBundleLoader.LoadAssestAsync(fileName, delegate(UnityEngine.Object retAsset)
+		{
+			TextAsset textAsset = retAsset as TextAsset;
 
-		TextAsset textAsset = myLoader.GetAsset() as TextAsset;
+			string[] lines = textAsset.text.Split("\n"[0]);
 
-		string[] lines = textAsset.text.Split("\n"[0]);
+			_firstLine = lines[0];
 
-		_firstLine = lines[0];
+			_loadFileFinished = true;
 
-		myLoader.UnLoadAsset();
-
-		_loadFileFinished = true;
+		}));
 
 	}
-
 	
 }

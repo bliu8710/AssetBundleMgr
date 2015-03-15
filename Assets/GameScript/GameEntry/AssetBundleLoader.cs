@@ -7,12 +7,9 @@ using UnityEditor;
 public class AssetBundleLoader
 {
 	const string kAssetBundlesPath = "/AssetBundles/";
-	private string _assetBundleName;
-	private string _assetName;
-	private UnityEngine.Object _asset;
 
 	// Initialize the downloading url and AssetBundleManifest object.
-	public IEnumerator Initialize()
+	public static IEnumerator Initialize()
 	{
 		// Don't destroy the game object as we base on it to run the loading script.
 
@@ -37,36 +34,39 @@ public class AssetBundleLoader
 			yield return request;
 	}
 
-	public IEnumerator LoadAssestAsync(string name)
+	public static IEnumerator LoadAssestAsync(string name, System.Action<UnityEngine.Object> callBack)
 	{
-		_assetBundleName = "data.unity3d";
-		_assetName = "Assets/Resources/Data/AchievementsData.txt";
+		string assetBundleName = "data.unity3d";
+		string assetName = "Assets/Resources/Data/AchievementsData.txt";
 
-		Debug.Log("Start to load " + _assetName + " at frame " + Time.frameCount);
+		Debug.Log("Start to load " + assetName + " at frame " + Time.frameCount);
 
 		// Load asset from assetBundle.
-		AssetBundleLoadAssetOperation request = AssetBundleManager.LoadAssetAsync(_assetBundleName, _assetName, typeof(UnityEngine.Object));
+		AssetBundleLoadAssetOperation request = AssetBundleManager.LoadAssetAsync(assetBundleName, assetName, typeof(UnityEngine.Object));
 		if (request == null)
 			yield break;
 		yield return request;
 
 		// Get the asset.
-		_asset = request.GetAsset<UnityEngine.Object>();
-		Debug.Log(_assetName + (_asset == null ? " isn't" : " is") + " loaded successfully at frame " + Time.frameCount);
-	}
+		UnityEngine.Object asset = request.GetAsset<UnityEngine.Object>();
 
-	public void UnLoadAsset()
-	{
-		AssetBundleManager.UnloadAssetBundle(_assetBundleName);
-	}
+		if (asset != null)
+		{
+			Debug.Log(assetName + "is loaded successfully at frame " + Time.frameCount);
 
-	public UnityEngine.Object GetAsset()
-	{
-		return _asset;
+			callBack(request.GetAsset<UnityEngine.Object>());
+
+			AssetBundleManager.UnloadAssetBundle(assetBundleName);
+		}
+		else
+		{
+			Debug.LogError(assetName + "is NOT loaded successfully at frame " + Time.frameCount);
+		}
+		
 	}
 
 	#region GetRelativePath GetPlatformFolderForAssetBundles
-	public string GetRelativePath()
+	private static string GetRelativePath()
 	{
 		if (Application.isEditor)
 			return "file://" + System.Environment.CurrentDirectory.Replace("\\", "/"); // Use the build output folder directly.
@@ -78,7 +78,7 @@ public class AssetBundleLoader
 			return "file://" + Application.streamingAssetsPath;
 	}
 #if UNITY_EDITOR
-	public static string GetPlatformFolderForAssetBundles(BuildTarget target)
+	private static string GetPlatformFolderForAssetBundles(BuildTarget target)
 	{
 		switch (target)
 		{
@@ -103,7 +103,7 @@ public class AssetBundleLoader
 	}
 #endif
 
-	static string GetPlatformFolderForAssetBundles(RuntimePlatform platform)
+	private static string GetPlatformFolderForAssetBundles(RuntimePlatform platform)
 	{
 		switch (platform)
 		{
