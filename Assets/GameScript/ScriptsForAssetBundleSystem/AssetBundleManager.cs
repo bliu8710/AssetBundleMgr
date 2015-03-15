@@ -35,6 +35,7 @@ public class LoadedAssetBundle
 // Class takes care of loading assetBundle and its dependencies automatically, loading variants automatically.
  class AssetBundleManager : MonoBehaviour
 {
+	static AssetBundleManager _instance;
 	static bool USE_ASSET_BUNDLE = false;
 	static string m_BaseDownloadingURL = "";
 	static string[] m_Variants =  {  };
@@ -64,6 +65,11 @@ public class LoadedAssetBundle
 	public static AssetBundleManifest AssetBundleManifestObject
 	{
 		set {m_AssetBundleManifest = value; }
+	}
+
+	public static AssetBundleManager GetInstance()
+	{
+		return _instance;
 	}
 
 	// Get loaded AssetBundle, only return vaild object when all the dependencies are downloaded successfully.
@@ -102,6 +108,7 @@ public class LoadedAssetBundle
 	static public AssetBundleLoadManifestOperation Initialize (string manifestAssetBundleName)
 	{
 		var go = new GameObject("AssetBundleManager", typeof(AssetBundleManager));
+		_instance = go.GetComponent<AssetBundleManager>();
 		DontDestroyOnLoad(go);
 
 		LoadAssetBundle(manifestAssetBundleName, true);

@@ -8,7 +8,8 @@ public class MonoGameEntry : MonoBehaviour {
 	IEnumerator Start () {
 		yield return StartCoroutine(AssetBundleLoader.Initialize());
 
-		yield return StartCoroutine(LoadFromFile());
+		//yield return StartCoroutine(LoadFromFile());
+		yield return StartCoroutine(LoadPrefab());
 
 		Debug.Log("Start " + _firstLine);
 	}
@@ -25,7 +26,7 @@ public class MonoGameEntry : MonoBehaviour {
 
 	IEnumerator LoadFromFile()
 	{
-		string fileName = "Data/AchievementsData.txt";
+		string fileName = "Data/AchievementsData";
 
 		yield return StartCoroutine(AssetBundleLoader.LoadAssestAsync(fileName, delegate(UnityEngine.Object retAsset)
 		{
@@ -39,6 +40,20 @@ public class MonoGameEntry : MonoBehaviour {
 
 		}));
 
+	}
+
+	IEnumerator LoadPrefab()
+	{
+		string fileName = "Assets/Resources/Prefab/Cube";
+
+		GameObject myCube = null;
+
+		yield return StartCoroutine(AssetBundleLoader.LoadAssestAsync(fileName, delegate(UnityEngine.Object retAsset)
+		{
+			myCube = GameObject.Instantiate(retAsset) as GameObject;
+		}));
+
+		//GameObject.Destroy(myCube);
 	}
 	
 }

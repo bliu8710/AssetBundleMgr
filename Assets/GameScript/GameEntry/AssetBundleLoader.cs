@@ -31,13 +31,13 @@ public class AssetBundleLoader
 		// Initialize AssetBundleManifest which loads the AssetBundleManifest object.
 		var request = AssetBundleManager.Initialize(platformFolderForAssetBundles);
 		if (request != null)
-			yield return request;
+			yield return AssetBundleManager.GetInstance().StartCoroutine(request);
 	}
 
 	public static IEnumerator LoadAssestAsync(string name, System.Action<UnityEngine.Object> callBack)
 	{
-		string assetBundleName = "data.unity3d";
-		string assetName = "Assets/Resources/Data/AchievementsData.txt";
+		string assetBundleName = "cube2.unity3d"; //"data.unity3d";
+		string assetName = "Assets/Resources/Prefab/Cube2.prefab"; //"Assets/Resources/Data/AchievementsData.txt";
 
 		Debug.Log("Start to load " + assetName + " at frame " + Time.frameCount);
 
@@ -45,7 +45,7 @@ public class AssetBundleLoader
 		AssetBundleLoadAssetOperation request = AssetBundleManager.LoadAssetAsync(assetBundleName, assetName, typeof(UnityEngine.Object));
 		if (request == null)
 			yield break;
-		yield return request;
+		yield return AssetBundleManager.GetInstance().StartCoroutine(request);
 
 		// Get the asset.
 		UnityEngine.Object asset = request.GetAsset<UnityEngine.Object>();
