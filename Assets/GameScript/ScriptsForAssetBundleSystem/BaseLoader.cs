@@ -19,10 +19,6 @@ public class BaseLoader : MonoBehaviour {
 	{
 		// Don't destroy the game object as we base on it to run the loading script.
 		DontDestroyOnLoad(gameObject);
-		
-#if UNITY_EDITOR
-		Debug.Log ("We are " + (AssetBundleManager.SimulateAssetBundleInEditor ? "in Editor simulation mode" : "in normal mode") );
-#endif
 
 		string platformFolderForAssetBundles = 
 #if UNITY_EDITOR

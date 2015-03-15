@@ -33,15 +33,12 @@ public class LoadedAssetBundle
 }
 
 // Class takes care of loading assetBundle and its dependencies automatically, loading variants automatically.
-public class AssetBundleManager : MonoBehaviour
+ class AssetBundleManager : MonoBehaviour
 {
+	static bool USE_ASSET_BUNDLE = false;
 	static string m_BaseDownloadingURL = "";
 	static string[] m_Variants =  {  };
 	static AssetBundleManifest m_AssetBundleManifest = null;
-#if UNITY_EDITOR	
-	static int m_SimulateAssetBundleInEditor = -1;
-	const string kSimulateAssetBundles = "SimulateAssetBundles";
-#endif
 
 	static Dictionary<string, LoadedAssetBundle> m_LoadedAssetBundles = new Dictionary<string, LoadedAssetBundle> ();
 	static Dictionary<string, WWW> m_DownloadingWWWs = new Dictionary<string, WWW> ();
@@ -68,29 +65,6 @@ public class AssetBundleManager : MonoBehaviour
 	{
 		set {m_AssetBundleManifest = value; }
 	}
-
-#if UNITY_EDITOR
-	// Flag to indicate if we want to simulate assetBundles in Editor without building them actually.
-	public static bool SimulateAssetBundleInEditor 
-	{
-		get
-		{
-			if (m_SimulateAssetBundleInEditor == -1)
-				m_SimulateAssetBundleInEditor = EditorPrefs.GetBool(kSimulateAssetBundles, true) ? 1 : 0;
-			
-			return m_SimulateAssetBundleInEditor != 0;
-		}
-		set
-		{
-			int newValue = value ? 1 : 0;
-			if (newValue != m_SimulateAssetBundleInEditor)
-			{
-				m_SimulateAssetBundleInEditor = newValue;
-				EditorPrefs.SetBool(kSimulateAssetBundles, value);
-			}
-		}
-	}
-#endif
 
 	// Get loaded AssetBundle, only return vaild object when all the dependencies are downloaded successfully.
 	static public LoadedAssetBundle GetLoadedAssetBundle (string assetBundleName, out string error)
@@ -129,12 +103,6 @@ public class AssetBundleManager : MonoBehaviour
 	{
 		var go = new GameObject("AssetBundleManager", typeof(AssetBundleManager));
 		DontDestroyOnLoad(go);
-	
-#if UNITY_EDITOR	
-		// If we're in Editor simulation mode, we don't need the manifest assetBundle.
-		if (SimulateAssetBundleInEditor)
-			return null;
-#endif
 
 		LoadAssetBundle(manifestAssetBundleName, true);
 		var operation = new AssetBundleLoadManifestOperation (manifestAssetBundleName, "AssetBundleManifest", typeof(AssetBundleManifest));
@@ -145,12 +113,6 @@ public class AssetBundleManager : MonoBehaviour
 	// Load AssetBundle and its dependencies.
 	static protected void LoadAssetBundle(string assetBundleName, bool isLoadingAssetBundleManifest = false)
 	{
-#if UNITY_EDITOR
-		// If we're in Editor simulation mode, we don't have to really load the assetBundle and its dependencies.
-		if (SimulateAssetBundleInEditor)
-			return;
-#endif
-
 		Debug.Log("------- LoadAssetBundle " + assetBundleName);
 
 		if (!isLoadingAssetBundleManifest)
@@ -260,12 +222,6 @@ public class AssetBundleManager : MonoBehaviour
 	// Unload assetbundle and its dependencies.
 	static public void UnloadAssetBundle(string assetBundleName)
 	{
-#if UNITY_EDITOR
-		// If we're in Editor simulation mode, we don't have to load the manifest assetBundle.
-		if (SimulateAssetBundleInEditor)
-			return;
-#endif
-
 		Debug.Log(m_LoadedAssetBundles.Count + " assetbundle(s) in memory before unloading " + assetBundleName);
 
 		UnloadAssetBundleInternal(assetBundleName);
@@ -353,28 +309,11 @@ public class AssetBundleManager : MonoBehaviour
 	static public AssetBundleLoadAssetOperation LoadAssetAsync (string assetBundleName, string assetName, System.Type type)
 	{
 		AssetBundleLoadAssetOperation operation = null;
-#if UNITY_EDITOR
-		if (SimulateAssetBundleInEditor)
-		{
-			string[] assetPaths = AssetDatabase.GetAssetPathsFromAssetBundleAndAssetName(assetBundleName, assetName);
-			if (assetPaths.Length == 0)
-			{
-				Debug.LogError("There is no asset with name \"" + assetName + "\" in " + assetBundleName);
-				return null;
-			}
 
-			// @TODO: Now we only get the main object from the first asset. Should consider type also.
-			Object target = AssetDatabase.LoadMainAssetAtPath(assetPaths[0]);
-			operation = new AssetBundleLoadAssetOperationSimulation (target);
-		}
-		else
-#endif
-		{
-			LoadAssetBundle (assetBundleName);
-			operation = new AssetBundleLoadAssetOperationFull (assetBundleName, assetName, type);
+		LoadAssetBundle (assetBundleName);
+		operation = new AssetBundleLoadAssetOperationFull (assetBundleName, assetName, type);
 
-			m_InProgressOperations.Add (operation);
-		}
+		m_InProgressOperations.Add (operation);
 
 		return operation;
 	}
@@ -383,35 +322,22 @@ public class AssetBundleManager : MonoBehaviour
 	static public AssetBundleLoadOperation LoadLevelAsync (string assetBundleName, string levelName, bool isAdditive)
 	{
 		AssetBundleLoadOperation operation = null;
-#if UNITY_EDITOR
-		if (SimulateAssetBundleInEditor)
-		{
-			string[] levelPaths = AssetDatabase.GetAssetPathsFromAssetBundleAndAssetName(assetBundleName, levelName);
-			if (levelPaths.Length == 0)
-			{
-				///@TODO: The error needs to differentiate that an asset bundle name doesn't exist
-				//        from that there right scene does not exist in the asset bundle...
-			
-				Debug.LogError("There is no scene with name \"" + levelName + "\" in " + assetBundleName);
-				return null;
-			}
 
-			if (isAdditive)
-				EditorApplication.LoadLevelAdditiveInPlayMode(levelPaths[0]);
-			else
-				EditorApplication.LoadLevelInPlayMode(levelPaths[0]);
+		LoadAssetBundle (assetBundleName);
+		operation = new AssetBundleLoadLevelOperation (assetBundleName, levelName, isAdditive);
 
-			operation = new AssetBundleLoadLevelSimulationOperation();
-		}
-		else
-#endif
-		{
-			LoadAssetBundle (assetBundleName);
-			operation = new AssetBundleLoadLevelOperation (assetBundleName, levelName, isAdditive);
-
-			m_InProgressOperations.Add (operation);
-		}
+		m_InProgressOperations.Add (operation);
 
 		return operation;
+	}
+
+	public static UnityEngine.Object Load(string name)
+	{
+		if (USE_ASSET_BUNDLE)
+		{
+			return Resources.Load(name);
+		}
+
+		return null;
 	}
 } // End of AssetBundleManager.
