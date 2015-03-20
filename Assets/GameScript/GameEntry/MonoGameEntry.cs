@@ -48,6 +48,10 @@ public class MonoGameEntry : MonoBehaviour {
 
 		GameObject myCube = null;
 
+		//Caching.CleanCache();
+
+		Debug.Log("is Cached = " + AssetBundleLoader.IsCached(fileName));
+
 		yield return StartCoroutine(AssetBundleLoader.LoadAssestAsync(fileName, delegate(UnityEngine.Object retAsset)
 		{
 			myCube = GameObject.Instantiate(retAsset) as GameObject;

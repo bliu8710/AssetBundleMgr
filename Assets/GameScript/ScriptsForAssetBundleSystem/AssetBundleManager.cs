@@ -203,6 +203,19 @@ public class LoadedAssetBundle
 		return false;
 	}
 
+	 static public bool IsCached (string assetBundleName)
+	{
+		string url = m_BaseDownloadingURL + assetBundleName;
+
+		if (m_AssetBundleManifest == null)
+		{
+			Debug.LogError("Please initialize AssetBundleManifest by calling AssetBundleManager.Initialize()");
+			return false;
+		}
+
+		return Caching.IsVersionCached(url, m_AssetBundleManifest.GetAssetBundleHash(assetBundleName));
+	}
+
 	// Where we get all the dependencies and load them all.
 	static protected void LoadDependencies(string assetBundleName)
 	{

@@ -65,6 +65,14 @@ public class AssetBundleLoader
 		
 	}
 
+	public static bool IsCached(string name)
+	{
+		string assetBundleName = "cube2.unity3d"; //"data.unity3d";
+		string assetName = "Assets/Resources/Prefab/Cube2.prefab"; //"Assets/Resources/Data/AchievementsData.txt";
+
+		return AssetBundleManager.IsCached(assetBundleName);
+	}
+
 	#region GetRelativePath GetPlatformFolderForAssetBundles
 	private static string GetRelativePath()
 	{
